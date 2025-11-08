@@ -406,5 +406,5 @@ def search():
                          subjects_results=subjects_results,
                          units_results=units_results)
 
-with app.app_context():
-    db.create_all()
+# with app.app_context():
+#    db.create_all()
