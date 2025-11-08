@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-search"></i> Search Results</h2>
+    <a href="{{ url_for('notes') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Notes
+    </a>
+</div>
+
+<!-- Search Box -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form action="{{ url_for('search') }}" method="GET">
+            <div class="input-group">
+                <input type="text" class="form-control" name="q" placeholder="Search notes by title, description, subject, or unit..." value="{{ query }}">
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if query %}
+<!-- Search Results Summary -->
+<div class="alert alert-info">
+    <i class="fas fa-info-circle"></i> 
+    Found {{ notes_results|length }} notes, {{ subjects_results|length }} subjects, and {{ units_results|length }} units matching "{{ query }}"
+</div>
+
+<!-- Notes Results -->
+{% if notes_results %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-file-alt"></i> Notes ({{ notes_results|length }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for note in notes_results %}
+            <div class="col-lg-6 mb-3">
+                <div class="card note-card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-file-{{ 'pdf' if note.file_type == 'pdf' else 'word' if note.file_type in ['doc', 'docx'] else 'image' if note.file_type in ['jpg', 'png', 'jpeg', 'gif'] else 'alt' if note.file_type == 'txt' else 'file' }} text-primary file-icon"></i>
+                            <div class="flex-grow-1 ms-3">
+                                <h6 class="card-title mb-1">{{ note.title }}</h6>
+                                <p class="card-text text-muted small mb-2">
+                                    <i class="fas fa-book"></i> {{ note.subject.name }} 
+                                    <i class="fas fa-folder ms-2"></i> {{ note.unit.name }}
+                                </p>
+                                {% if note.description %}
+                                <p class="card-text small">{{ note.description|truncate(100) }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <small class="text-muted">{{ note.created_at.strftime('%b %d, %Y') }}</small>
+                            <div class="btn-group">
+                                <a href="{{ url_for('view_note', note_id=note.id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('download_note', note_id=note.id) }}" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Subjects Results -->
+{% if subjects_results %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-book"></i> Subjects ({{ subjects_results|length }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for subject in subjects_results %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card subject-card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ subject.name }}</h6>
+                        <p class="card-text text-muted small">{{ subject.description or 'No description' }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ subject.units|length }} units</small>
+                            <a href="{{ url_for('view_subject', subject_id=subject.id) }}" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Units Results -->
+{% if units_results %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-folder"></i> Units ({{ units_results|length }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for unit in units_results %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card unit-card h-100">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ unit.name }}</h6>
+                        <p class="card-text text-muted small">
+                            <i class="fas fa-book"></i> {{ unit.subject.name }}
+                        </p>
+                        <p class="card-text text-muted small">{{ unit.description or 'No description' }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ unit.notes|length }} notes</small>
+                            <a href="{{ url_for('add_note') }}?unit_id={{ unit.id }}" class="btn btn-sm btn-outline-success">
+                                Add Note
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if not notes_results and not subjects_results and not units_results %}
+<div class="text-center py-5">
+    <i class="fas fa-search fa-4x text-muted mb-3"></i>
+    <h4 class="text-muted">No Results Found</h4>
+    <p class="text-muted">No notes, subjects, or units found matching "{{ query }}"</p>
+    <a href="{{ url_for('add_note') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add New Note
+    </a>
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-search fa-4x text-muted mb-3"></i>
+    <h4 class="text-muted">Search Your Notes</h4>
+    <p class="text-muted">Enter a search term above to find notes, subjects, and units.</p>
+</div>
+{% endif %}
+{% endblock %}

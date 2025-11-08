@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}My Notes{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-file-alt"></i> My Notes</h2>
+    <div>
+        <a href="{{ url_for('add_note') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Note
+        </a>
+    </div>
+</div>
+
+<!-- Search Bar -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form action="{{ url_for('search') }}" method="GET">
+            <div class="input-group">
+                <input type="text" class="form-control" name="q" placeholder="Search notes by title, description, subject, or unit..." value="{{ request.args.get('q', '') }}">
+                <button class="btn btn-outline-primary" type="submit">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Notes List -->
+{% if notes %}
+<div class="row">
+    {% for note in notes %}
+    <div class="col-lg-6 mb-4">
+        <div class="card note-card h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-start mb-3">
+                    <!-- Dynamic Icons based on note type -->
+                    {% if note.note_type == 'file' %}
+                        <i class="fas fa-file-{{ 'pdf' if note.file_type == 'pdf' else 'word' if note.file_type in ['doc', 'docx'] else 'image' if note.file_type in ['jpg', 'png', 'jpeg', 'gif'] else 'alt' if note.file_type == 'txt' else 'file' }} text-primary file-icon fa-2x"></i>
+                    {% elif note.note_type == 'text' %}
+                        <i class="fas fa-edit text-success file-icon fa-2x"></i>
+                    {% elif note.note_type == 'link' %}
+                        <i class="fas fa-link text-info file-icon fa-2x"></i>
+                    {% elif note.note_type == 'youtube' %}
+                        <i class="fab fa-youtube text-danger file-icon fa-2x"></i>
+                    {% else %}
+                        <i class="fas fa-file text-warning file-icon fa-2x"></i>
+                    {% endif %}
+                    
+                    <div class="flex-grow-1 ms-3">
+                        <h5 class="card-title mb-1">{{ note.title }}</h5>
+                        <p class="card-text text-muted small mb-2">
+                            <i class="fas fa-book"></i> {{ note.subject.name }} 
+                            <i class="fas fa-folder ms-2"></i> {{ note.unit.name }}
+                            <span class="badge bg-secondary ms-2 text-capitalize">
+                                {% if note.note_type == 'file' %}File
+                                {% elif note.note_type == 'text' %}Text
+                                {% elif note.note_type == 'link' %}Link
+                                {% elif note.note_type == 'youtube' %}YouTube
+                                {% endif %}
+                            </span>
+                        </p>
+                        
+                        <!-- Note Preview -->
+                        {% if note.note_type == 'text' and note.content %}
+                            <p class="card-text small text-muted">{{ note.content|truncate(100) }}</p>
+                        {% elif note.note_type == 'link' and note.content %}
+                            <p class="card-text small text-muted"><i class="fas fa-external-link-alt"></i> {{ note.content|truncate(50) }}</p>
+                        {% elif note.note_type == 'youtube' and note.content %}
+                            <p class="card-text small text-muted"><i class="fab fa-youtube"></i> YouTube Video</p>
+                        {% elif note.description %}
+                            <p class="card-text small">{{ note.description|truncate(100) }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-calendar"></i> {{ note.created_at.strftime('%b %d, %Y') }}
+                    </small>
+                    <div class="btn-group">
+                        <a href="{{ url_for('view_note', note_id=note.id) }}" class="btn btn-sm btn-outline-primary" title="View">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        
+                        <!-- Download button only for file notes -->
+                        {% if note.note_type == 'file' %}
+                        <a href="{{ url_for('download_note', note_id=note.id) }}" class="btn btn-sm btn-outline-success" title="Download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        {% else %}
+                        <button class="btn btn-sm btn-outline-secondary" title="Download not available" disabled>
+                            <i class="fas fa-download"></i>
+                        </button>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('delete_note', note_id=note.id) }}" 
+                           class="btn btn-sm btn-outline-danger" 
+                           title="Delete"
+                           onclick="return confirm('Are you sure you want to delete this note?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+    <h4 class="text-muted">No Notes Found</h4>
+    <p class="text-muted">You haven't added any notes yet. Start by adding your first note!</p>
+    <a href="{{ url_for('add_note') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Add Your First Note
+    </a>
+</div>
+{% endif %}
+{% endblock %}

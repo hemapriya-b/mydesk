@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Welcome Card -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="card-title">Welcome back, {{ current_user.username }}! 👋</h3>
+                <p class="card-text">Manage your notes, subjects, and units efficiently.</p>
+            </div>
+        </div>
+
+        <!-- Create Subject Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('subjects') }}" class="btn btn-primary w-100">
+                            <i class="fas fa-book"></i> Create Subject
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('add_note') }}" class="btn btn-success w-100">
+                            <i class="fas fa-plus"></i> Add Note
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('notes') }}" class="btn btn-info w-100">
+                            <i class="fas fa-search"></i> Browse Notes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subjects List -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-book"></i> Your Subjects</h5>
+            </div>
+            <div class="card-body">
+                {% if subjects %}
+                <div class="row">
+                    {% for subject in subjects %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card subject-card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ subject.name }}</h6>
+                                <p class="card-text text-muted small">{{ subject.description or 'No description' }}</p>
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">
+                                        {{ subject.units|length }} units
+                                    </small>
+                                    <a href="{{ url_for('view_subject', subject_id=subject.id) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        View Units
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No subjects created yet.</p>
+                    <a href="{{ url_for('subjects') }}" class="btn btn-primary">
+                        Create Your First Subject
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Statistics Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Statistics</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="row">
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h4 class="text-primary mb-0">{{ total_subjects }}</h4>
+                            <small class="text-muted">Subjects</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h4 class="text-success mb-0">{{ total_units }}</h4>
+                            <small class="text-muted">Units</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h4 class="text-info mb-0">{{ total_notes }}</h4>
+                            <small class="text-muted">Notes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Notes -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Notes</h5>
+            </div>
+            <div class="card-body recent-notes">
+                {% if recent_notes %}
+                    {% for note in recent_notes %}
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                        <i class="fas fa-file-{{ 'pdf' if note.file_type == 'pdf' else 'word' if note.file_type in ['doc', 'docx'] else 'image' if note.file_type in ['jpg', 'png', 'jpeg', 'gif'] else 'alt' if note.file_type == 'txt' else 'file' }} text-primary file-icon"></i>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0 small">{{ note.title }}</h6>
+                            <small class="text-muted">{{ note.created_at.strftime('%b %d, %Y') }}</small>
+                        </div>
+                        <a href="{{ url_for('view_note', note_id=note.id) }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-file fa-2x text-muted mb-2"></i>
+                    <p class="text-muted small">No notes yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Tips -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Quick Tips</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li class="mb-2">📚 Organize notes by subjects and units</li>
+                    <li class="mb-2">🔍 Use search to find notes quickly</li>
+                    <li class="mb-2">📱 Access your notes from any device</li>
+                    <li class="mb-0">🎨 Toggle dark/light mode as needed</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

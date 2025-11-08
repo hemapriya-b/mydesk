@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Add Note{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-plus-circle"></i> Add New Note</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_note') }}" enctype="multipart/form-data" id="addNoteForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Note Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="subject_id" class="form-label">Subject *</label>
+                                <select class="form-control" id="subject_id" name="subject_id" onchange="updateUnits()" required>
+                                    <option value="">Select Subject</option>
+                                    {% for subject in subjects %}
+                                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="unit_id" class="form-label">Unit *</label>
+                                <select class="form-control" id="unit_id" name="unit_id" required>
+                                    <option value="">Select a subject first</option>
+                                </select>
+                                <div class="form-text" id="unit-help">Please select a subject first to see available units</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Upload File *</label>
+                                <input type="file" class="form-control" id="file" name="file" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif" onchange="previewFile(this)" required>
+                                <div class="form-text">Allowed formats: PDF, DOC, DOCX, TXT, JPG, PNG, GIF (Max 16MB)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" placeholder="Add a description for this note..."></textarea>
+                    </div>
+
+                    <!-- File Preview -->
+                    <div class="mb-3">
+                        <label class="form-label">File Preview</label>
+                        <div id="file-preview" class="border rounded p-3 text-center">
+                            <div class="text-muted">
+                                <i class="fas fa-file-upload fa-3x mb-2"></i>
+                                <p>No file selected</p>
+                            </div>
+                        </div>
+                        <div id="file-name" class="text-center mt-2 small text-muted"></div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('notes') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                        <button type="submit" class="btn btn-primary" id="submit-btn">Add Note</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize units when page loads if there's a preset unit_id
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const presetUnitId = urlParams.get('unit_id');
+    const presetSubjectId = urlParams.get('subject_id');
+    
+    if (presetSubjectId) {
+        document.getElementById('subject_id').value = presetSubjectId;
+        updateUnits().then(() => {
+            if (presetUnitId) {
+                document.getElementById('unit_id').value = presetUnitId;
+            }
+        });
+    }
+});
+
+// Enhanced form validation
+document.getElementById('addNoteForm').addEventListener('submit', function(e) {
+    const unitSelect = document.getElementById('unit_id');
+    const subjectSelect = document.getElementById('subject_id');
+    
+    if (!subjectSelect.value) {
+        e.preventDefault();
+        flashMessage('Please select a subject!', 'danger');
+        subjectSelect.focus();
+        return false;
+    }
+    
+    if (!unitSelect.value || unitSelect.disabled) {
+        e.preventDefault();
+        flashMessage('Please select a unit!', 'danger');
+        unitSelect.focus();
+        return false;
+    }
+    
+    // Show loading state
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding Note...';
+    submitBtn.disabled = true;
+});
+
+function flashMessage(message, type) {
+    // Create flash message
+    const flashDiv = document.createElement('div');
+    flashDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    flashDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert at the top of the card body
+    const cardBody = document.querySelector('.card-body');
+    cardBody.insertBefore(flashDiv, cardBody.firstChild);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (flashDiv.parentNode) {
+            flashDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

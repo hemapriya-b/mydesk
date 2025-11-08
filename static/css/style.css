@@ -1,0 +1,59 @@
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+}
+
+[data-bs-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --card-bg: #2d2d2d;
+    --border-color: #404040;
+}
+
+body {
+    background-color: var(--bg-color, #ffffff);
+    color: var(--text-color, #000000);
+    transition: all 0.3s ease;
+}
+
+.card {
+    background-color: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-color, #dee2e6);
+}
+
+.subject-card, .unit-card, .note-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.subject-card:hover, .unit-card:hover, .note-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.progress-ring {
+    width: 120px;
+    height: 120px;
+}
+
+.progress-ring-circle {
+    transition: stroke-dashoffset 0.35s;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+.file-icon {
+    font-size: 2rem;
+    margin-right: 10px;
+}
+
+.recent-notes {
+    max-height: 300px;
+    overflow-y: auto;
+}
