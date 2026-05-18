@@ -5,7 +5,12 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
+instance/
+.env
+.vercel/
 *.sqlite3
+*.db
 static/uploads/*
 !.gitkeep
 .DS_Store

@@ -16,8 +16,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Create upload folder if it doesn't exist
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+def ensure_upload_folder():
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Database Models
 class User(UserMixin, db.Model):
@@ -354,6 +354,9 @@ def view_note(note_id):
 @login_required
 def download_note(note_id):
     note = Note.query.filter_by(id=note_id, user_id=current_user.id).first_or_404()
+    if not note.file_path or not os.path.exists(note.file_path):
+        flash('This file is no longer available. Vercel stores uploaded files only temporarily.', 'warning')
+        return redirect(url_for('view_note', note_id=note.id))
     return send_file(note.file_path, as_attachment=True, download_name=note.filename)
 
 @app.route('/delete_note/<int:note_id>')
@@ -362,7 +365,7 @@ def delete_note(note_id):
     note = Note.query.filter_by(id=note_id, user_id=current_user.id).first_or_404()
     
     # Delete the file from filesystem
-    if os.path.exists(note.file_path):
+    if note.file_path and os.path.exists(note.file_path):
         os.remove(note.file_path)
     
     db.session.delete(note)
@@ -406,7 +409,12 @@ def search():
                          subjects_results=subjects_results,
                          units_results=units_results)
 
+with app.app_context():
+    ensure_upload_folder()
+    db.create_all()
+
+application = app
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
+    ensure_upload_folder()
     app.run(debug=True)
